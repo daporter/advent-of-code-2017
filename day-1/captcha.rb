@@ -9,9 +9,9 @@ class Captcha
     sum = 0
     for index in (0..@sequence.length) do
       current_digit = @sequence[index]
-      next_digit    = @sequence[increment(index)]
+      paired_digit  = @sequence[paired_index(index)]
 
-      sum += current_digit  if next_digit == current_digit
+      sum += current_digit  if paired_digit == current_digit
     end
 
     sum
@@ -23,7 +23,7 @@ class Captcha
     @sequence = digits.split(//).map(&:to_i)
   end
 
-  def increment(index)
-    (index + 1) % @sequence.length
+  def paired_index(index)
+    (index + @index_pair_offset) % @sequence.length
   end
 end
