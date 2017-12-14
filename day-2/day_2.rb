@@ -1,6 +1,7 @@
 require_relative 'spreadsheet'
 
 string = File.read('input.txt')
-checksum = Spreadsheet.new(string).checksum
+spreadsheet = Spreadsheet.new(string)
 
-puts "The checksum is: #{checksum}"
+puts "The differences checksum is: #{spreadsheet.checksum_differences}"
+puts "The quotients checksum is: #{spreadsheet.checksum_quotients}"
