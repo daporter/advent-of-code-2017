@@ -1,25 +1,28 @@
 class MemoryReallocator
   attr_reader :banks
+  attr_reader :cycles
+  attr_reader :cycles_in_loop
 
   def initialize(banks)
     @banks = banks
     @previous_states = []
-    @num_cycles = 0
+    @cycles = 0
+    @cycles_in_loop = 0
   end
 
-  def cycles_until_loop_detected
+  def execute
     perform_cycle until loop_detected?
-    @num_cycles
   end
 
   def perform_cycle
-    @previous_states << @banks.dup
+    @previous_states.unshift @banks.dup
     redistribute_blocks(bank_with_most_blocks)
-    @num_cycles += 1
+    @cycles += 1
   end
 
   def loop_detected?
-    @previous_states.include?(@banks)
+    @cycles_in_loop = (@previous_states.index(@banks) || 0) + 1
+    @cycles_in_loop > 1
   end
 
   def bank_with_most_blocks

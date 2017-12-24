@@ -55,6 +55,20 @@ class MemoryReallocatorTest < Minitest::Test
   # redistribution cycle, and so the answer in this example is 5.
   def test_cycles_until_loop_detected
     mr = MemoryReallocator.new([0, 2, 7, 0])
-    assert_equal 5, mr.cycles_until_loop_detected
+    mr.execute
+    assert_equal 5, mr.cycles
+  end
+
+  # Out of curiosity, the debugger would also like to know the size of the
+  # loop: starting from a state that has already been seen, how many block
+  # redistribution cycles must be performed before that same state is seen
+  # again?
+  #
+  # In the example above, 2 4 1 2 is seen again after four cycles, and so the
+  # answer in that example would be 4.
+  def test_number_of_cycles_in_loop
+    mr = MemoryReallocator.new([0, 2, 7, 0])
+    mr.execute
+    assert_equal 4, mr.cycles_in_loop
   end
 end
