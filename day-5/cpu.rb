@@ -20,7 +20,23 @@ class Cpu
   def step
     pc_before = @program_counter
     @program_counter += @instructions[@program_counter]
-    @instructions[pc_before] += 1
+    update_instruction(pc_before)
     @steps += 1
+  end
+
+  def update_instruction(_)
+    raise NotImplementedError
+  end
+end
+
+class SimpleCpu < Cpu
+  def update_instruction(number)
+    @instructions[number] += 1
+  end
+end
+
+class ComplexCpu < Cpu
+  def update_instruction(number)
+    @instructions[number] += (@instructions[number] >= 3 ? -1 : 1)
   end
 end
