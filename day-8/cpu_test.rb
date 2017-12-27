@@ -32,7 +32,7 @@ class CpuTest < Minitest::Test
     assert_equal 10, cpu.get_register_value('c')
   end
 
-  def test_execute_three_instructions
+  def test_execute_four_instructions
     cpu = Cpu.new(@text)
     4.times { cpu.execute_next_instruction }
     assert_equal (-10), cpu.get_register_value('c')
@@ -42,5 +42,29 @@ class CpuTest < Minitest::Test
     cpu = Cpu.new(@text)
     cpu.execute
     assert_equal 1, cpu.largest_value_in_any_register
+  end
+
+  def test_highest_value_held_one_instruction
+    cpu = Cpu.new(@text)
+    cpu.execute_next_instruction
+    assert_equal 0, cpu.largest_value_held
+  end
+
+  def test_highest_value_held_two_instructions
+    cpu = Cpu.new(@text)
+    2.times { cpu.execute_next_instruction }
+    assert_equal 1, cpu.largest_value_held
+  end
+
+  def test_highest_value_held_three_instructions
+    cpu = Cpu.new(@text)
+    3.times { cpu.execute_next_instruction }
+    assert_equal 10, cpu.largest_value_held
+  end
+
+  def test_highest_value_held_four_instructions
+    cpu = Cpu.new(@text)
+    4.times { cpu.execute_next_instruction }
+    assert_equal 10, cpu.largest_value_held
   end
 end
