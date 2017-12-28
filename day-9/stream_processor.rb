@@ -4,10 +4,16 @@
 class StreamProcessor
   def initialize(stream)
     @stream = stream.chars
+    @garbage_chars_count = 0
   end
 
   def score
     process_group(0)
+  end
+
+  def garbage_chars_count
+    process_group(0)
+    @garbage_chars_count
   end
 
   def process_group(depth)
@@ -31,6 +37,7 @@ class StreamProcessor
       next_char
       process_garbage
     elsif char != '>'
+      @garbage_chars_count += 1
       process_garbage
     end
   end

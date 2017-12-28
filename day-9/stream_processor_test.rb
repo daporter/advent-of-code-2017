@@ -44,4 +44,39 @@ class StreamProcessorTest < Minitest::Test
     sp = StreamProcessor.new('{{<a!>},{<a!>},{<a!>},{<ab>}}')
     assert_equal 3, sp.score
   end
+
+  def test_garbage_chars_count_empty
+    sp = StreamProcessor.new('<>')
+    assert_equal 0, sp.garbage_chars_count
+  end
+
+  def test_garbage_chars_count_random_chars
+    sp = StreamProcessor.new('<random characters>')
+    assert_equal 17, sp.garbage_chars_count
+  end
+
+  def test_garbage_chars_count_chevrons
+    sp = StreamProcessor.new('<<<<>')
+    assert_equal 3, sp.garbage_chars_count
+  end
+
+  def test_garbage_chars_count_cancelled
+    sp = StreamProcessor.new('<{!>}>')
+    assert_equal 2, sp.garbage_chars_count
+  end
+
+  def test_garbage_chars_count_two_cancelled
+    sp = StreamProcessor.new('<!!>')
+    assert_equal 0, sp.garbage_chars_count
+  end
+
+  def test_garbage_chars_count_three_cancelled
+    sp = StreamProcessor.new('<!!!>>')
+    assert_equal 0, sp.garbage_chars_count
+  end
+
+  def test_garbage_chars_count_random
+    sp = StreamProcessor.new('<{o"i!a,<{i<a>')
+    assert_equal 10, sp.garbage_chars_count
+  end
 end
