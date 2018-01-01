@@ -1,0 +1,15 @@
+* Constants
+
+* Data Definition
+
+  - A Circular List is
+    an array containing each integer in 0..255
+
+  - The Current Position is
+    an integer with range 0..(the number of elements in the Circular List)
+
+  - The Skip Size is
+    a non-negative integer
+
+  - The Sequence of Lengths is
+    an array of non-negative integers
