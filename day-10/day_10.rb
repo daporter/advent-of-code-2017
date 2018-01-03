@@ -10,4 +10,4 @@ puts "The first two numbers are #{a} and #{b}, with product #{a * b}"
 byte_string = '120,93,0,90,5,80,129,74,1,165,204,255,254,2,50,113'
 hash = KnotHash.from_byte_string(byte_string)
 hash.execute
-puts "The Knot Hasvh is #{hash.dense_hash}"
+puts "The Knot Hash is #{hash.dense_hash}"
