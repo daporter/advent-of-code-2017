@@ -1,8 +1,6 @@
-require_relative 'hex_step'
-
 # Implements a path through a hex grid.
 #
-# We can see that the following step laws hold:
+# We can see that the following "step laws" hold:
 #
 # n,  s  == .
 # n,  se == ne
@@ -42,49 +40,104 @@ require_relative 'hex_step'
 # equivalent single step.
 #
 class HexPath
+  STEP_REDUCTIONS = {
+    n:  { s: nil, se: :ne, sw: :nw },
+    ne: { sw: nil, nw: :n, s: :se },
+    se: { nw: nil, n: :ne, sw: :s  },
+    s:  { n: nil, ne: :se, nw: :sw },
+    sw: { ne: nil, se: :s, n: :nw },
+    nw: { se: nil, s: :sw, ne: :n }
+  }.freeze
+
   attr_reader :steps
 
   # Creates a new instance from a string representation of a path.
   def self.from_string(string)
-    steps = string.split(',').map { |dir| HexStep.new(dir) }
+    steps = string.split(',').map(&:to_sym)
     new(steps)
   end
 
   def initialize(steps)
     @steps = steps
+    @furthest_from_start = 0
   end
 
-  # Returns a new HexPath to the same destination such that the number of
-  # steps is minimised.
+  # Returns the shortest path to the destination of this path.
   def minimise
-    HexPath.new(HexPath.minimise_path(@steps, []))
+    HexPath.new(minimise_path(@steps))
   end
 
-  # We minimise a path via the following algorithm:
-  #
-  # Let s be the first step of path p.  Let p' be the minimisation of the path
-  # without s.  Let t be a complement of s in p', and let p'' be p' without t.
-  # if s and t have a null step reduction, return p''.  Otherwise, let w be
-  # the minimisation of steps s and t.  Return the minimisation of w + p''.
-  # Otherwise if no complement of s exists in p', return s + p'.
-  def self.minimise_path(path, acc)
-    return path + acc if path.size <= 1
+  def minimise_path(path)
+    path.reduce([]) { |path_m, step| minimised_path_add_step(path_m, step) }
+  end
 
-    step, rest = path[0], path[1..-1]
-
-    idx = rest.index { |other| step.complement?(other) }
-    complement = rest.delete_at(idx || rest.length)
-
-    if complement && step.null_reduction?(complement)
-      minimise_path(rest, acc)
-    elsif complement
-      minimise_path([step.minimise(complement)] + rest, acc)
+  # minimised_path, step -> minimised_path
+  # Returns the minimised path resulting from extending 'path' by 'step'.
+  def minimised_path_add_step(path, step)
+    if HexPath.path_contains_complement?(path, step)
+      minimised_path_add_step_with_complement(path, step)
     else
-      minimise_path(rest, [step] + acc)
+      minimised_path_add_step_without_complement(path, step)
     end
+  end
+
+  # minimised_path, step -> boolean
+  #
+  # Determines whether 'path' contains a step complementary to 'step'.  Two
+  # steps are complementary if they can be reduced to 0 or 1 equivalent steps.
+  def self.path_contains_complement?(path, step)
+    path.any? { |other| complementary?(step, other) }
+  end
+
+  def minimised_path_add_step_with_complement(path, step)
+    path_r, comp = HexPath.path_remove_complement(path, step)
+    step_r = HexPath.reduce_steps(step, comp)
+    step_r ? minimised_path_add_step(path_r, step_r) : path_r
+  end
+
+  def minimised_path_add_step_without_complement(path, step)
+    path << step
+    len = path.length
+    @furthest_from_start = len if @furthest_from_start < len
+    path
+  end
+
+  # path, step -> [path, step]
+  #
+  # Removes the complement step of 'step' and returns the new path and the
+  # complement.
+  def self.path_remove_complement(path, step)
+    idx = path.index { |other| complementary?(step, other) }
+    comp = path.delete_at(idx)
+    [path, comp]
+  end
+
+  # step, step -> boolean
+  #
+  # Determines whether 'step' and 'other' are complementary.
+  def self.complementary?(step, other)
+    STEP_REDUCTIONS.fetch(step).fetch(other)
+    true
+  rescue KeyError
+    false
+  end
+
+  # step, step -> step-or-nil
+  #
+  # Reduces 'step' and 'comp' to their equivalent single step, or nil if they
+  # cancel each other.  Raises an exception if the steps are not
+  # complementary.
+  def self.reduce_steps(step, comp)
+    return STEP_REDUCTIONS[step][comp] if complementary?(step, comp)
+    raise ArgumentError, "Steps not complementary: #{step}, #{comp}"
   end
 
   def step_count
     @steps.count
+  end
+
+  def furthest_from_start
+    minimise if @furthest_from_start.zero?
+    @furthest_from_start
   end
 end
