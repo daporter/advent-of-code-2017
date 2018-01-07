@@ -43,7 +43,7 @@ class HexPath
   STEP_REDUCTIONS = {
     n:  { s: nil, se: :ne, sw: :nw },
     ne: { sw: nil, nw: :n, s: :se },
-    se: { nw: nil, n: :ne, sw: :s  },
+    se: { nw: nil, n: :ne, sw: :s },
     s:  { n: nil, ne: :se, nw: :sw },
     sw: { ne: nil, se: :s, n: :nw },
     nw: { se: nil, s: :sw, ne: :n }
