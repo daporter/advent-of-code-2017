@@ -60,4 +60,20 @@ class DigitalPlumber
     end
     accumulator
   end
+
+  # Returns a list of all program groups.  A group is a collection of programs
+  # that can all communicate via pipes either directly or indirectly.
+  def all_program_groups
+    @pipe_sets.keys.reduce([]) do |groups, program|
+      if DigitalPlumber.program_groups_include_program?(groups, program)
+        groups
+      else
+        groups << program_group(program)
+      end
+    end
+  end
+
+  def self.program_groups_include_program?(groups, program)
+    groups.any? { |group| group.include?(program) }
+  end
 end

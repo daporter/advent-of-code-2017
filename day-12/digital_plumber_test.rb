@@ -56,4 +56,42 @@ class DigitalPlumberTest < Minitest::Test
     plumber = DigitalPlumber.pipe_sets_from_string(input)
     assert_equal [0, 2, 3, 4, 5, 6], plumber.program_group(0)
   end
+
+  def test_all_program_groups_with_one_pipe_set
+    plumber = DigitalPlumber.pipe_sets_from_string('0 <-> 2')
+    assert_equal [[0, 2]], plumber.all_program_groups
+  end
+
+  def test_all_program_groups_with_two_pipe_sets
+    input = %(
+      0 <-> 2
+      1 <-> 1
+    )
+    plumber = DigitalPlumber.pipe_sets_from_string(input)
+    assert_equal [[0, 2], [1]], plumber.all_program_groups
+  end
+
+  def test_all_program_groups_with_three_pipe_sets
+    input = %(
+      0 <-> 2
+      2 <-> 0
+      1 <-> 1
+    )
+    plumber = DigitalPlumber.pipe_sets_from_string(input)
+    assert_equal [[0, 2], [1]], plumber.all_program_groups
+  end
+
+  def test_all_program_groups_with_with_many_pipe_sets
+    input = %(
+      0 <-> 2
+      1 <-> 1
+      2 <-> 0, 3, 4
+      3 <-> 2, 4
+      4 <-> 2, 3, 6
+      5 <-> 6
+      6 <-> 4, 5
+    )
+    plumber = DigitalPlumber.pipe_sets_from_string(input)
+    assert_equal [[0, 2, 3, 4, 5, 6], [1]], plumber.all_program_groups
+  end
 end
