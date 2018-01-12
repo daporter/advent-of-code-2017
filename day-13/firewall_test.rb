@@ -59,4 +59,15 @@ class FirewallTest < Minitest::Test
     fw = Firewall.from_string(@large_input)
     assert_equal 24, fw.trip_severity
   end
+
+  def test_delay_for_ten
+    fw = Firewall.from_string(@large_input)
+    fw.delay_for(10)
+    assert_equal [2, 0, 0, 0, 2, 0, 2], fw.scanner_positions
+  end
+
+  def test_min_delay_to_pass_through
+    fw = Firewall.from_string(@large_input)
+    assert_equal 10, fw.min_delay_to_pass_through
+  end
 end
