@@ -32,16 +32,6 @@ class DiskTest < Minitest::Test
     assert_equal '##.#.#..', disk.row_to_s(0).slice(0, 8)
   end
 
-  # def test_row_to_s_row_one
-  #   disk = Disk.new(@key)
-  #   assert_equal '.#.#.#.#', disk.row_to_s(1).slice(0, 8)
-  # end
-
-  # def test_row_to_s_row_two
-  #   disk = Disk.new(@key)
-  #   assert_equal '....#.#.', disk.row_to_s(2).slice(0, 8)
-  # end
-
   def test_row_to_s_row_seven
     disk = Disk.new(@key)
     assert_equal '##.#.##.', disk.row_to_s(7).slice(0, 8)
