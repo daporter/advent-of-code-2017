@@ -10,18 +10,6 @@ class DiskTest < Minitest::Test
     @key = 'flqrgnkx'
   end
 
-  def test_initialize_first_row
-    disk = Disk.new(@key)
-    hash = KnotHash.from_byte_string("#{@key}-0").dense_hash
-    assert_equal Disk.hex_to_binary(hash), disk.row(0)
-  end
-
-  def test_initialize_last_row
-    disk = Disk.new(@key)
-    hash = KnotHash.from_byte_string("#{@key}-127").dense_hash
-    assert_equal Disk.hex_to_binary(hash), disk.row(127)
-  end
-
   def test_row_num_raises_error
     disk = Disk.new(@key)
     assert_raises(IndexError) { disk.row(128) }
@@ -40,5 +28,32 @@ class DiskTest < Minitest::Test
   def test_squares_used_count
     disk = Disk.new(@key)
     assert_equal 8108, disk.squares_used_count
+  end
+
+  def test_bit_strings_to_squares_with_one_zero
+    assert_equal [0], Disk.bit_strings_to_squares(['0'])[0].take(1)
+  end
+
+  def test_bit_strings_to_squares_with_one_one
+    assert_equal [1], Disk.bit_strings_to_squares(['1'])[0].take(1)
+  end
+
+  def test_bit_strings_to_squares_with_one_region
+    assert_equal [[1, 0], [1, 0]], Disk.bit_strings_to_squares(['10', '10']).take(2).map { |row| row.take(2) }
+  end
+
+  def test_bit_strings_to_squares_with_two_regions
+    assert_equal [[1, 0], [0, 2]], Disk.bit_strings_to_squares(['10', '01']).take(2).map { |row| row.take(2) }
+  end
+
+  def test_bit_strings_to_squares_with_two_regions_complex
+    bit_strings = ['101', '011', '000']
+    expected = [[1, 0, 2], [0, 2, 2], [0, 0, 0]]
+    assert_equal expected, Disk.bit_strings_to_squares(bit_strings).take(3).map { |row| row.take(3) }
+  end
+
+  def test_count_regions
+    disk = Disk.new(@key)
+    assert_equal 1242, disk.count_regions
   end
 end
