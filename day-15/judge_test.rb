@@ -26,7 +26,19 @@ class JudgeTest < Minitest::Test
   end
 
   def test_match_count_with_many_pairs
+    skip
     judge = Judge.new(65, 8_921, 40_000_000)
     assert_equal 588, judge.match_count
+  end
+
+  def test_factored_match_count_with_some_pairs
+    judge = Judge.new(65, 8_921, 1056)
+    assert_equal 1, judge.factored_match_count
+  end
+
+
+  def test_factored_match_count_with_many_pairs
+    judge = Judge.new(65, 8_921, 5_000_000)
+    assert_equal 309, judge.factored_match_count
   end
 end
