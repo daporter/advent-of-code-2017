@@ -34,6 +34,7 @@ class Spin < Move
   end
 
   def perform(line)
+    line = line.dup
     prefix = line[-@size..-1]
     suffix = line - prefix
     prefix + suffix
@@ -55,6 +56,7 @@ class Exchange < Move
   end
 
   def perform(line)
+    line = line.dup
     line[@position_a], line[@position_b] = line[@position_b], line[@position_a]
     line
   end
