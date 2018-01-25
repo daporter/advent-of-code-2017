@@ -3,6 +3,7 @@
 #
 class CircularBuffer
   attr_reader :value
+  attr_reader :next
 
   def initialize(value = 0, next_buf = self)
     @value = value
