@@ -30,25 +30,29 @@ class InstructionTest < Minitest::Test
     assert_equal 3, registers[:a]
   end
 
-  def test_snd
-    registers = { a: 4 }
-    snd = SndInstruction.new(:a)
-    registers = snd.execute(registers)
-    assert_equal 4, registers[:snd]
+  def test_snd_adds_value_to_queue
+    send_queue = []
+    registers = { snd: send_queue, send_count: 0 }
+    snd = SndInstruction.new(1)
+    snd.execute(registers)
+    assert_equal [1], send_queue
   end
 
-  def test_rcv_when_zero
-    registers = { a: 0, rcv: 0 }
+  def test_rcv_does_nothing_when_queue_empty
+    receive_queue = []
+    registers = { a: 2, rcv: receive_queue, pc: 1 }
     rcv = RcvInstruction.new(:a)
     registers = rcv.execute(registers)
-    assert_equal 0, registers[:rcv]
+    assert_equal 2, registers[:a]
+    assert_equal 0, registers[:pc]
   end
 
-  def test_rcv_when_non_zero
-    registers = { a: 1, snd: 4, rcv: 0 }
+  def test_rcv_consumes_value_when_queue_nonempty
+    receive_queue = [3]
+    registers = { a: 2, rcv: receive_queue }
     rcv = RcvInstruction.new(:a)
     registers = rcv.execute(registers)
-    assert_equal 4, registers[:rcv]
+    assert_equal 3, registers[:a]
   end
 
   def test_jgz_when_x_le_zero

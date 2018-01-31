@@ -1,14 +1,17 @@
-require_relative 'instruction'
+require_relative 'program'
 
 class Tablet
   def initialize(code)
-    @instructions = parse_code(code)
-    @registers = Hash.new(0)
+    instructions = Tablet.parse_code(code)
+    receive_queue = []
+    send_queue = []
+    @programs = [Program.new(0, instructions, send_queue, receive_queue),
+                 Program.new(1, instructions, receive_queue, send_queue)]
   end
 
-  def parse_code(code)
+  def self.parse_code(code)
     code.strip.lines.map do |instruction|
-      Tablet.parse_instruction(instruction)
+      parse_instruction(instruction)
     end
   end
 
@@ -30,22 +33,18 @@ class Tablet
     [tokens[0], tokens[1..-1]]
   end
 
-  def run_until_frequency_recovered
+  def run_programs
     loop do
-      execute_next_instruction
-      break if program_terminated?
+      @programs.each(&:execute_next_instruction)
+      break if terminated?
     end
-    @registers[:rcv]
   end
 
-  def execute_next_instruction
-    next_instruction = @instructions[@registers[:pc]]
-    @registers = next_instruction.execute(@registers)
-    @registers[:pc] += 1
+  def terminated?
+    @programs.all?(&:waiting_for_data?) || @programs.all?(&:terminated?)
   end
 
-  def program_terminated?
-    pc = @registers[:pc]
-    pc < 0 || pc >= @instructions.count || !@registers[:rcv].zero?
+  def program(program_id)
+    @programs[program_id]
   end
 end

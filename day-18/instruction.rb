@@ -6,90 +6,73 @@ class Instruction
     raise NotImplementedError
   end
 
-  def self.parse_reg_or_num(reg_or_num)
-    reg_or_num =~ /[a-z]/ ? reg_or_num.to_sym : reg_or_num.to_i
+  def self.parse_reg_or_int(reg_or_int)
+    reg_or_int =~ /[a-z]/ ? reg_or_int.to_sym : reg_or_int.to_i
   end
 
-  def self.read_reg_or_num(reg_or_num, registers)
-    reg_or_num.kind_of?(Symbol) ? registers[reg_or_num] : reg_or_num
+  def self.eval_reg_or_int(reg_or_int, registers)
+    reg_or_int.is_a?(Symbol) ? registers[reg_or_int] : reg_or_int
   end
 end
 
-class SetInstruction < Instruction
+class ArithInstruction < Instruction
   def self.parse(tokens)
     new(tokens[0].to_sym, tokens[1])
   end
 
-  def initialize(register, reg_or_num)
+  def initialize(register, reg_or_int)
     @register = register
-    @reg_or_num = Instruction.parse_reg_or_num(reg_or_num)
+    @reg_or_int = Instruction.parse_reg_or_int(reg_or_int)
   end
 
   def execute(registers)
-    registers[@register] = Instruction.read_reg_or_num(@reg_or_num, registers)
+    arg = Instruction.eval_reg_or_int(@reg_or_int, registers)
+    registers[@register] = registers[@register].send(op, arg)
     registers
+  end
+
+  def op
+    raise NotImplementedError
   end
 end
 
-class AddInstruction < Instruction
-  def self.parse(tokens)
-    new(tokens[0].to_sym, tokens[1].to_i)
-  end
-
-  def initialize(register, value)
-    @register = register
-    @value = value
-  end
-
-  def execute(registers)
-    registers[@register] += @value
-    registers
+class AddInstruction < ArithInstruction
+  def op
+    :+
   end
 end
 
-class MulInstruction < Instruction
-  def self.parse(tokens)
-    new(tokens[0].to_sym, tokens[1])
-  end
-
-  def initialize(register, reg_or_num)
-    @register = register
-    @reg_or_num = Instruction.parse_reg_or_num(reg_or_num)
-  end
-
-  def execute(registers)
-    registers[@register] *= Instruction.read_reg_or_num(@reg_or_num, registers)
-    registers
+class MulInstruction < ArithInstruction
+  def op
+    :*
   end
 end
 
-class ModInstruction < Instruction
-  def self.parse(tokens)
-    new(tokens[0].to_sym, tokens[1])
+class ModInstruction < ArithInstruction
+  def op
+    :%
   end
+end
 
-  def initialize(register, reg_or_num)
-    @register = register
-    @reg_or_num = Instruction.parse_reg_or_num(reg_or_num)
-  end
-
+class SetInstruction < ArithInstruction
   def execute(registers)
-    registers[@register] %= Instruction.read_reg_or_num(@reg_or_num, registers)
+    registers[@register] = Instruction.eval_reg_or_int(@reg_or_int, registers)
     registers
   end
 end
 
 class SndInstruction < Instruction
   def self.parse(tokens)
-    new(tokens[0].to_sym)
+    new(tokens[0])
   end
 
-  def initialize(register)
-    @register = register
+  def initialize(reg_or_int)
+    @reg_or_int = Instruction.parse_reg_or_int(reg_or_int)
   end
 
   def execute(registers)
-    registers[:snd] = registers[@register]
+    registers[:snd] << Instruction.eval_reg_or_int(@reg_or_int, registers)
+    registers[:send_count] += 1
     registers
   end
 end
@@ -104,23 +87,34 @@ class RcvInstruction < Instruction
   end
 
   def execute(registers)
-    registers[:rcv] = registers[:snd] unless registers[@register].zero?
+    queue = registers[:rcv]
+    if queue.any?
+      registers[@register] = queue.shift
+      registers[:waiting] = false
+    else
+      registers[:waiting] = true
+      registers[:pc] -= 1
+    end
     registers
   end
 end
 
 class JgzInstruction < Instruction
   def self.parse(tokens)
-    new(tokens[0].to_sym, tokens[1].to_i)
+    new(tokens[0], tokens[1])
   end
 
-  def initialize(register, offset)
-    @register = register
-    @offset = offset
+  def initialize(test_reg_or_int, offset_reg_or_int)
+    @test_reg_or_int = Instruction.parse_reg_or_int(test_reg_or_int)
+    @offset_reg_or_int = Instruction.parse_reg_or_int(offset_reg_or_int)
   end
 
   def execute(registers)
-    registers[:pc] += @offset - 1 if registers[@register] > 0
+    test = Instruction.eval_reg_or_int(@test_reg_or_int, registers)
+    offset = Instruction.eval_reg_or_int(@offset_reg_or_int, registers)
+    if (test.is_a?(Symbol) && registers[test] > 0) || test > 0
+      registers[:pc] += offset - 1
+    end
     registers
   end
 end
