@@ -148,4 +148,10 @@ class DiagramTest < Minitest::Test
     diagram.move_packet_along_path
     assert_equal 'ABCDEF', diagram.letters_seen
   end
+
+  def test_step_count
+    diagram = Diagram.parse(@input)
+    diagram.move_packet_along_path
+    assert_equal 38, diagram.step_count
+  end
 end

@@ -4,3 +4,4 @@ input = IO.read('input.txt')
 diagram = Diagram.parse(input)
 diagram.move_packet_along_path
 puts "The letters seen are: #{diagram.letters_seen}"
+puts "The packet needs to go #{diagram.step_count} steps"

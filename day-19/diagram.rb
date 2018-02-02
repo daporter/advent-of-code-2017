@@ -10,6 +10,7 @@ class Diagram
 
   attr_accessor :prev_posn
   attr_accessor :packet_posn
+  attr_reader :step_count
   attr_reader :letters_seen
 
   # Create a new diagram from a string representation.
@@ -24,9 +25,9 @@ class Diagram
   end
 
   def initialize(grid)
-    @grid         = grid
-    @prev_posn    = nil
-    @packet_posn  = starting_position
+    @grid = grid
+    @prev_posn = @packet_posn = nil
+    @step_count = 0
     @letters_seen = ''
   end
 
@@ -47,13 +48,19 @@ class Diagram
   end
 
   def next_step_along_path
-    tmp = @packet_posn
-    @packet_posn = if grid_character(@packet_posn) == PATH_CORNER
-                     next_step_around_corner
-                   else
-                     @packet_posn.next_straight_line(@prev_posn)
-                   end
-    @prev_posn = tmp
+    tmp          = @packet_posn
+    @packet_posn = next_packet_posn
+    @prev_posn   = tmp
+    @step_count += 1
+  end
+
+  def next_packet_posn
+    return starting_position unless @packet_posn
+    if grid_character(@packet_posn) == PATH_CORNER
+      next_step_around_corner
+    else
+      @packet_posn.next_straight_line(@prev_posn)
+    end
   end
 
   def maybe_update_letters_seen
@@ -63,7 +70,7 @@ class Diagram
 
   def end_of_path_reached?
     posns = @packet_posn.surrounding_positions
-    posns.delete(@prev_posn)
+    posns.delete(@prev_posn) if @prev_posn
     posns.none? { |posn| on_path?(posn) }
   end
 
